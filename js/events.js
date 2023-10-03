@@ -1,6 +1,6 @@
-import {app} from './main.js';
-import {compileExpressions} from './calculate.js';
+import {compileExpressions, validateExpression} from './calculate.js';
 import {rysujWykres} from './draw.js';
+import {app} from './main.js';
 import {generateLegend, randomHexColor} from './utils.js';
 
 function onMouseMove(event) {
@@ -45,21 +45,40 @@ export function resize() {
     app.canvas.height = window.innerHeight;
 }
 
+function addNewExpression(expression) {
+    app.expressions.push({
+        isVisible: true,
+        expr: expression,
+        color: randomHexColor(),
+        compiledExpression: null,
+    });
+    compileExpressions();
+    rysujWykres();
+    generateLegend();
+}
+
+function transformExpression(expression) {
+    return expression.replaceAll('π', 'PI');
+}
+
 export function initEvents() {
-    app.canvas.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove);
     app.canvas.addEventListener('mousedown', onMouseDown);
     app.canvas.addEventListener('mouseup', onMouseUp);
-    document.querySelector('.expression-input').addEventListener('change', e => {
-        app.expressions.push({
-            expr: e.target.value,
-            color: randomHexColor(),
-            compiledExpression: null,
-        });
-        e.target.value = '';
-        compileExpressions();
-        rysujWykres();
-        generateLegend();
-    });
+
+    const addNew = () => {
+        const expression = transformExpression(expressionInput.value);
+        if (!validateExpression(expression)) {
+            alert('Invalid expression: ' + expressionInput.value);
+            return;
+        }
+        addNewExpression(expression);
+        expressionInput.value = '';
+    };
+
+    const expressionInput = document.querySelector('.expression-input');
+    expressionInput.addEventListener('change', addNew);
+    document.querySelector('.add').addEventListener('click', addNew);
     window.addEventListener('resize', () => {
         resize();
         rysujWykres();

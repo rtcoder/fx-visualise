@@ -1,5 +1,5 @@
-import {app} from './main.js';
 import {fn} from './calculate.js';
+import {app} from './main.js';
 
 export function rysujWykres() {
     app.ctx.clearRect(0, 0, app.canvas.width, app.canvas.height);
@@ -94,31 +94,42 @@ function drawYAxis(y) {
 function drawFunction(expression) {
     app.ctx.beginPath();
     app.ctx.strokeStyle = expression.color;
-    app.ctx.lineWidth = 2;
+    app.ctx.lineWidth = 1;
 
-    for (let x = -(app.canvas.width / 2)-app.x0; x < app.canvas.width+app.x0 / 2; x += 1) {
+    for (let x = -(app.canvas.width / 2) - app.x0; x < app.canvas.width - app.x0; x += 1) {
         let y = -fn(expression, x / app.scaleX) * app.scaleY + app.y0;
         app.ctx.lineTo(x + app.x0, y);
     }
     app.ctx.stroke();
-    // for (let x = -(app.canvas.width / 2); x < app.canvas.width / 2; x += 1) {
-    //     let y = -fn(expression, x / app.scaleX) * app.scaleY + app.y0;
-    //     if (x === 0 || y === 0) {
-    //         drawDot(x + app.x0, y+app.y0);
-    //     }
-    // }
+    app.ctx.closePath();
+}
+
+function drawFunctionDots(expression) {
+    app.ctx.beginPath();
+    app.ctx.strokeStyle = expression.color;
+    app.ctx.lineWidth = 1;
+
+    for (let x = -(app.canvas.width / 2) - app.x0; x < app.canvas.width - app.x0; x += 0.1) {
+        let y = -fn(expression, x / app.scaleX) * app.scaleY + app.y0;
+        if (Math.abs(y - app.y0) <= 0.1||Math.abs(x)<=0.1) {
+            drawDot(x + app.x0, y, expression.color);
+        }
+    }
+    app.ctx.stroke();
+    app.ctx.closePath();
 }
 
 function drawAllFunctions() {
-    app.expressions.forEach(drawFunction);
+    app.expressions.filter(ex => ex.isVisible).forEach(drawFunction);
+    app.expressions.filter(ex => ex.isVisible).forEach(drawFunctionDots);
 }
 
-function drawDot(x, y) {
+function drawDot(x, y, color) {
     app.ctx.beginPath();
     app.ctx.moveTo(x, y);
-    app.ctx.arc(x, y, 4, 0, 2 * Math.PI);
-    app.ctx.fillStyle = 'red';
-    app.ctx.strokeStyle = 'blue';
+    app.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    app.ctx.strokeStyle = color;
+    app.ctx.fillStyle = color;
     app.ctx.fill();
     app.ctx.stroke();
     app.ctx.closePath();

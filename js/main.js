@@ -14,8 +14,14 @@ export const app = {
     canvas: null,
     ctx: null,
     expressions: [{
+        isVisible: true,
         color: 'red',
-        expr: 'x^2-4x+9',
+        expr: 'sin(x)',
+        compiledExpression: null,
+    },{
+        isVisible: true,
+        color: 'blue',
+        expr: 'cos(x)',
         compiledExpression: null,
     }],
 };
