@@ -1,4 +1,4 @@
-import {app} from '../main.js';
+import {app} from './main.js';
 export function compileExpressions() {
     app.expressions = app.expressions.map(e => {
         const parsedExpression = math.parse(e.expr);

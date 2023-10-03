@@ -1,4 +1,4 @@
-import {app} from '../main.js';
+import {app} from './main.js';
 import {fn} from './calculate.js';
 
 export function rysujWykres() {

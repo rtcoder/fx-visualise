@@ -1,7 +1,7 @@
-import {app, generateLegend} from '../main.js';
-import {randomHexColor} from '../utils.js';
+import {app} from './main.js';
 import {compileExpressions} from './calculate.js';
 import {rysujWykres} from './draw.js';
+import {generateLegend, randomHexColor} from './utils.js';
 
 function onMouseMove(event) {
     if (app.scaleChange) {
