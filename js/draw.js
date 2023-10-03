@@ -1,118 +1,125 @@
-export function rysujWykres(context, canvas, skalaX, skalaY, x0, y0, fx) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
+import {app} from '../main.js';
+import {fn} from './calculate.js';
 
-    drawGrid(context, canvas, skalaX, skalaY, x0, y0);
-    drawAxis(context, canvas, skalaX, skalaY, x0, y0);
-    drawFunction(context, canvas, skalaX, skalaY, fx, x0, y0);
+export function rysujWykres() {
+    app.ctx.clearRect(0, 0, app.canvas.width, app.canvas.height);
+
+    drawGrid();
+    drawAxis();
+    drawAllFunctions();
 }
 
-function drawGrid(context, canvas, skalaX, skalaY, x0, y0) {
+function drawGrid() {
     // Rysowanie siatki pionowej
-    context.beginPath();
-    context.strokeStyle = '#ddd';
-    context.lineWidth = 1;
+    app.ctx.beginPath();
+    app.ctx.strokeStyle = '#ddd';
+    app.ctx.lineWidth = 1;
 
-    for (let x = x0 % skalaX; x < canvas.width; x += skalaX) {
-        context.moveTo(x, 0);
-        context.lineTo(x, canvas.height);
-        context.moveTo(x0 - (x - x0), 0);
-        context.lineTo(x0 - (x - x0), canvas.height);
+    for (let x = app.x0 % app.scaleX; x < app.canvas.width; x += app.scaleX) {
+        app.ctx.moveTo(x, 0);
+        app.ctx.lineTo(x, app.canvas.height);
+        app.ctx.moveTo(app.x0 - (x - app.x0), 0);
+        app.ctx.lineTo(app.x0 - (x - app.x0), app.canvas.height);
     }
 
-    context.stroke();
+    app.ctx.stroke();
 
     // Rysowanie siatki poziomej
-    for (let y = y0 % skalaY; y < canvas.height; y += skalaY) {
-        context.moveTo(0, y);
-        context.lineTo(canvas.width, y);
-        context.moveTo(0, y0 - (y - y0));
-        context.lineTo(canvas.width, y0 - (y - y0));
+    for (let y = app.y0 % app.scaleY; y < app.canvas.height; y += app.scaleY) {
+        app.ctx.moveTo(0, y);
+        app.ctx.lineTo(app.canvas.width, y);
+        app.ctx.moveTo(0, app.y0 - (y - app.y0));
+        app.ctx.lineTo(app.canvas.width, app.y0 - (y - app.y0));
     }
 
-    context.stroke();
+    app.ctx.stroke();
 }
 
-function drawAxis(context, canvas, skalaX, skalaY, x0, y0) {
+function drawAxis() {
     // Rysowanie osi x z oznaczeniami
-    context.beginPath();
-    context.strokeStyle = 'black';
-    context.fillStyle = 'black';
-    context.lineWidth = 1;
-    context.moveTo(0, y0);
-    context.lineTo(canvas.width, y0);
-    context.stroke();
+    app.ctx.beginPath();
+    app.ctx.strokeStyle = 'black';
+    app.ctx.fillStyle = 'black';
+    app.ctx.lineWidth = 1;
+    app.ctx.moveTo(0, app.y0);
+    app.ctx.lineTo(app.canvas.width, app.y0);
+    app.ctx.stroke();
 
-    let stepX = skalaX;
-    for (let x = x0; x < canvas.width; x += stepX) {
-        drawXAxis(context, skalaX, x, x0, y0);
+    let stepX = app.scaleX;
+    for (let x = app.x0; x < app.canvas.width; x += stepX) {
+        drawXAxis(x);
     }
-    stepX = skalaX;
-    for (let x = x0; x >= (x0 % skalaX) - (2 * stepX); x -= stepX) {
-        drawXAxis(context, skalaX, x, x0, y0);
+    stepX = app.scaleX;
+    for (let x = app.x0; x >= (app.x0 % app.scaleX) - (2 * stepX); x -= stepX) {
+        drawXAxis(x);
     }
 
     // Rysowanie osi y z oznaczeniami
-    context.beginPath();
-    context.moveTo(x0, 0);
-    context.lineTo(x0, canvas.height);
-    context.stroke();
+    app.ctx.beginPath();
+    app.ctx.moveTo(app.x0, 0);
+    app.ctx.lineTo(app.x0, app.canvas.height);
+    app.ctx.stroke();
 
-    let stepY = skalaY;
-    for (let y = y0; y < canvas.height; y += stepY) {
-        drawYAxis(context, skalaY, y, x0, y0)
+    let stepY = app.scaleY;
+    for (let y = app.y0; y < app.canvas.height; y += stepY) {
+        drawYAxis(y);
     }
-    for (let y = y0; y >= (y0 % skalaY) - (2 * stepY); y -= stepY) {
-        drawYAxis(context, skalaY, y, x0, y0)
+    for (let y = app.y0; y >= (app.y0 % app.scaleY) - (2 * stepY); y -= stepY) {
+        drawYAxis(y);
     }
 
-    context.fillText('0', x0 + 3, y0 + 10);
+    app.ctx.fillText('0', app.x0 + 3, app.y0 + 10);
 }
 
-function drawXAxis(context, skalaX, x, x0, y0) {
-    context.moveTo(x, y0 - 5);
-    context.lineTo(x, y0 + 5);
-    context.stroke();
-    const label = Math.round((x - x0) / skalaX);
+function drawXAxis(x) {
+    app.ctx.moveTo(x, app.y0 - 5);
+    app.ctx.lineTo(x, app.y0 + 5);
+    app.ctx.stroke();
+    const label = Math.round((x - app.x0) / app.scaleX);
     if (label !== 0) {
-        context.fillText(label, x - 3, y0 + 15);
+        app.ctx.fillText(label, x - 3, app.y0 + 15);
     }
 }
 
-function drawYAxis(context, skalaY, y, x0, y0) {
-    context.moveTo(x0 - 5, y);
-    context.lineTo(x0 + 5, y);
-    context.stroke();
-    const label = Math.round(-(y - y0) / skalaY);
+function drawYAxis(y) {
+    app.ctx.moveTo(app.x0 - 5, y);
+    app.ctx.lineTo(app.x0 + 5, y);
+    app.ctx.stroke();
+    const label = Math.round(-(y - app.y0) / app.scaleY);
     if (label !== 0) {
-        context.fillText(label, x0 + 10, y + 3);
+        app.ctx.fillText(label, app.x0 + 10, y + 3);
     }
 }
 
-function drawFunction(context, canvas, skalaX, skalaY, fx, x0, y0) {
-    context.beginPath();
-    context.strokeStyle = 'blue';
-    context.lineWidth = 2;
+function drawFunction(expression) {
+    app.ctx.beginPath();
+    app.ctx.strokeStyle = expression.color;
+    app.ctx.lineWidth = 2;
 
-    for (let x = -(canvas.width / 2); x < canvas.width / 2; x += 1) {
-        let y = -fx(x / skalaX) * skalaY + y0;
-        context.lineTo(x + x0, y);
+    for (let x = -(app.canvas.width / 2)-app.x0; x < app.canvas.width+app.x0 / 2; x += 1) {
+        let y = -fn(expression, x / app.scaleX) * app.scaleY + app.y0;
+        app.ctx.lineTo(x + app.x0, y);
     }
-    context.stroke();
-    for (let x = -(canvas.width / 2); x < canvas.width / 2; x += 1) {
-        let y = -fx(x / skalaX) * skalaY + y0;
-        if (x === 0 || y === 0) {
-            drawDot(context, x + x0, y);
-        }
-    }
-
+    app.ctx.stroke();
+    // for (let x = -(app.canvas.width / 2); x < app.canvas.width / 2; x += 1) {
+    //     let y = -fn(expression, x / app.scaleX) * app.scaleY + app.y0;
+    //     if (x === 0 || y === 0) {
+    //         drawDot(x + app.x0, y+app.y0);
+    //     }
+    // }
 }
 
-function drawDot(context, x, y) {
-    context.beginPath();
-    context.arc(x, y, 4, 0, 2 * Math.PI);
-    context.fillStyle = 'red';
-    context.strokeStyle = 'blue';
-    context.fill();
-    context.stroke();
-    context.closePath();
+function drawAllFunctions() {
+    app.expressions.forEach(drawFunction);
+}
+
+function drawDot(x, y) {
+    app.ctx.beginPath();
+    app.ctx.moveTo(x, y);
+    app.ctx.arc(x, y, 4, 0, 2 * Math.PI);
+    app.ctx.fillStyle = 'red';
+    app.ctx.strokeStyle = 'blue';
+    app.ctx.fill();
+    app.ctx.stroke();
+    app.ctx.closePath();
 }

@@ -1,98 +1,78 @@
+import {compileExpressions} from './js/calculate.js';
 import {rysujWykres} from './js/draw.js';
+import {initEvents, resize} from './js/events.js';
 
-// Pobierz wartość x od użytkownika (np. za pomocą input)
-const inputExpression = 'x^2-4x+9'; // Przykładowe wyrażenie matematyczne
-const expressions = [
-    {
-        color: 'blue',
+export const app = {
+    mouseX: null,
+    mouseY: null,
+    scaleX: 20,
+    scaleY: 20,
+    scaleChange: false,
+    x0: 0,
+    y0: 0,
+    canvas: null,
+    ctx: null,
+    expressions: [{
+        color: 'red',
         expr: 'x^2-4x+9',
-        compiledExpression:null
-    },
-];
-
-// Stwórz funkcję, która będzie obliczać wartość wyrażenia dla określonego x
-function obliczWartoscWyrazenia(wyrazenie, x) {
-    try {
-        const parsedExpression = math.parse(wyrazenie);
-        const compiledExpression = parsedExpression.compile();
-        return compiledExpression.evaluate({x: x});
-    } catch (error) {
-        console.error('Błąd analizy wyrażenia:', error);
-        return NaN; // W przypadku błędu zwracamy NaN
-    }
-}
-
-
-const canvas = document.getElementById('wykres');
-const context = canvas.getContext('2d');
+        compiledExpression: null,
+    }],
+};
+app.canvas = document.getElementById('wykres');
+app.ctx = app.canvas.getContext('2d');
 resize();
+app.x0 = app.canvas.width / 2;
+app.y0 = app.canvas.height / 2;
+compileExpressions()
+generateLegend()
+function zamienNaIndeksGorny(wyrazenie) {
+    // Funkcja pomocnicza do obsługi potęgi z indeksem górnym
+    const zamienPotegi = (czesc) => {
+        const potegaRegex = /(\w+)\^(\d+)/g;
+        return czesc.replace(potegaRegex, '<sup>$1</sup><sup>$2</sup>');
+    };
 
-let skalaX = 20;
-let skalaY = 20;
+    // Podziel wyrażenie na części rozdzielone operatorami +, -, *
+    const czesci = wyrazenie.split(/([-+*])/);
 
-let x0 = canvas.width / 2;
-let y0 = canvas.height / 2;
+    // Przygotuj wynik w postaci HTML z indeksami górnymi
+    let wynikHTML = '';
+    let inIndex = false; // Flaga wskazująca, czy jesteśmy wewnątrz indeksu górnego
 
-let mouseX;
-let mouseY;
-
-let zmianaSkali = false;
-
-function f(x) {
-    return obliczWartoscWyrazenia(inputExpression, x);
-}
-
-// Funkcja obsługująca zdarzenie przesunięcia myszy
-function onMouseMove(event) {
-    if (zmianaSkali) {
-        const deltaX = event.clientX - mouseX;
-        const deltaY = event.clientY - mouseY;
-
-        if (event.shiftKey) { // Sprawdzamy, czy jest wciśnięty klawisz Shift
-            x0 += deltaX;
-            y0 += deltaY;
+    czesci.forEach((czesc) => {
+        if (czesc === '^') {
+            inIndex = true;
+        } else if (czesc === '+') {
+            inIndex = false;
+        } else if (czesc === '-' || czesc === '*') {
+            wynikHTML += czesc;
         } else {
-            skalaX += deltaX / 10;
-            skalaY += deltaY / 10;
-            if (skalaX < 2) {
-                skalaX = 2;
-            }
-            if (skalaY < 2) {
-                skalaY = 2;
+            if (inIndex) {
+                wynikHTML += zamienPotegi(czesc);
+            } else {
+                wynikHTML += czesc;
             }
         }
+    });
 
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-        rysujWykres(context, canvas, skalaX, skalaY, x0, y0, f);
-    }
+    return wynikHTML;
 }
 
-// Funkcja obsługująca zdarzenie naciśnięcia myszy
-function onMouseDown(event) {
-    zmianaSkali = true;
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-}
 
-// Funkcja obsługująca zdarzenie zwolnienia myszy
-function onMouseUp() {
-    zmianaSkali = false;
+export function generateLegend (){
+    document.querySelector('.legend').innerHTML =app.expressions.map(ex=>{
+        return `<div class="item">
+        <div class="line" style="background: ${ex.color}"></div>
+        <div class="expr">${ex.expr}</div>
+    </div>`
+    }).join('');
+    document.querySelectorAll('.legend .item').forEach(el=>{
+        const exprElement=el.querySelector('.expr');
+        katex.render(exprElement.innerText, exprElement, {
+            throwOnError: false
+        });
+    })
 }
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-// Dodaj obsługę myszy do elementu canvas
-canvas.addEventListener('mousemove', onMouseMove);
-canvas.addEventListener('mousedown', onMouseDown);
-canvas.addEventListener('mouseup', onMouseUp);
-window.addEventListener('resize', () => {
-    resize();
-    rysujWykres(context, canvas, skalaX, skalaY, x0, y0, f);
-});
-// Inicjalizacja rysowania wykresu
-rysujWykres(context, canvas, skalaX, skalaY, x0, y0, f);
+initEvents();
+rysujWykres();
 
